@@ -20,7 +20,7 @@
 /* Begin PBXFileReference section */
 		4708D0061DD0E0E100B57EFC /* Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Download.swift; sourceTree = "<group>"; };
 		47CBF67F1DD2305B00C09720 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
-		D9EF8FC11B53FD2100EFC4B6 /* URLSessionMultiDownload.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URLSessionMultiDownload.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9EF8FC11B53FD2100EFC4B6 /* nsurlsession.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nsurlsession.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9EF8FC51B53FD2100EFC4B6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D9EF8FC61B53FD2100EFC4B6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9EF8FCD1B53FD2100EFC4B6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -70,7 +70,7 @@
 		D9EF8FC21B53FD2100EFC4B6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D9EF8FC11B53FD2100EFC4B6 /* URLSessionMultiDownload.app */,
+				D9EF8FC11B53FD2100EFC4B6 /* nsurlsession.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,9 +102,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D9EF8FC01B53FD2100EFC4B6 /* URLSessionMultiDownload */ = {
+		D9EF8FC01B53FD2100EFC4B6 /* nsurlsession */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D9EF8FE21B53FD2100EFC4B6 /* Build configuration list for PBXNativeTarget "URLSessionMultiDownload" */;
+			buildConfigurationList = D9EF8FE21B53FD2100EFC4B6 /* Build configuration list for PBXNativeTarget "nsurlsession" */;
 			buildPhases = (
 				D9EF8FBD1B53FD2100EFC4B6 /* Sources */,
 				D9EF8FBE1B53FD2100EFC4B6 /* Frameworks */,
@@ -114,9 +114,9 @@
 			);
 			dependencies = (
 			);
-			name = URLSessionMultiDownload;
+			name = nsurlsession;
 			productName = HalfTunes;
-			productReference = D9EF8FC11B53FD2100EFC4B6 /* URLSessionMultiDownload.app */;
+			productReference = D9EF8FC11B53FD2100EFC4B6 /* nsurlsession.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -154,7 +154,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D9EF8FC01B53FD2100EFC4B6 /* URLSessionMultiDownload */,
+				D9EF8FC01B53FD2100EFC4B6 /* nsurlsession */,
 			);
 		};
 /* End PBXProject section */
@@ -299,6 +299,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.skanderjabouzi.urlsession;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -312,6 +313,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.skanderjabouzi.urlsession;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -327,7 +329,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D9EF8FE21B53FD2100EFC4B6 /* Build configuration list for PBXNativeTarget "URLSessionMultiDownload" */ = {
+		D9EF8FE21B53FD2100EFC4B6 /* Build configuration list for PBXNativeTarget "nsurlsession" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D9EF8FE31B53FD2100EFC4B6 /* Debug */,

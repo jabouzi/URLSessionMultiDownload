@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D9EF8FC01B53FD2100EFC4B6"
-               BuildableName = "URLSessionMultiDownload.app"
-               BlueprintName = "URLSessionMultiDownload"
+               BuildableName = "nsurlsession.app"
+               BlueprintName = "nsurlsession"
                ReferencedContainer = "container:URLSessionMultiDownload.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,8 +47,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D9EF8FC01B53FD2100EFC4B6"
-            BuildableName = "URLSessionMultiDownload.app"
-            BlueprintName = "URLSessionMultiDownload"
+            BuildableName = "nsurlsession.app"
+            BlueprintName = "nsurlsession"
             ReferencedContainer = "container:URLSessionMultiDownload.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -65,8 +65,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D9EF8FC01B53FD2100EFC4B6"
-            BuildableName = "URLSessionMultiDownload.app"
-            BlueprintName = "URLSessionMultiDownload"
+            BuildableName = "nsurlsession.app"
+            BlueprintName = "nsurlsession"
             ReferencedContainer = "container:URLSessionMultiDownload.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

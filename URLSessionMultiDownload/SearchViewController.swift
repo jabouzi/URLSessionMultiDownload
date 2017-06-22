@@ -50,6 +50,7 @@ class SearchViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     tableView.tableFooterView = UIView()
+    self.updateSearchResults()
     // calling the lazily-loaded downloadsSession ensures the app creates exactly one background session upon initialization of SearchViewController
     _ = self.downloadsSession
   }
@@ -61,7 +62,7 @@ class SearchViewController: UIViewController {
   // MARK: Handling Search Results
   
   // This helper method helps parse response JSON NSData into an array of Track objects.
-  func updateSearchResults(_ data: Data?) {
+  func updateSearchResults() {
     searchResults.removeAll()
     searchResults.append(Track(name: "big_buck_bunny_1080p", artist: "Big Buck Nunny 1", previewUrl: "http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_1080p_h264.mov"))
     searchResults.append(Track(name: "big_buck_bunny_720p", artist: "Big Buck Nunny 2", previewUrl: "http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_h264.mov"))
@@ -126,17 +127,21 @@ class SearchViewController: UIViewController {
   
   // Called when the Resume button for a track is tapped
   func resumeDownload(_ track: Track) {
+    debugPrint("Track: \(track.name)")
+    debugPrint("Active Downloads \(activeDownloads)")
     if let urlString = track.previewUrl, let download = activeDownloads[urlString] {
       // is resume data present
       if let resumeData = download.resumeData {
         // if resumeData found, create a new downloadTask by invoking downloadTask(withResumeData:) with the resume data
         // and start the task by calling resume()
-        download.downloadTask = downloadsSession.downloadTask(withResumeData: resumeData as Data)
+        download.downloadTask = downloadsSession.correctedDownloadTask(withResumeData: resumeData as Data)
+        debugPrint("Download Task 1: \(download.downloadTask)")
         download.downloadTask!.resume()
         download.isDownloading = true
       } else if let url = URL(string: download.url) {
         // if resume data is absent for some reason, you create a new download task from scratch with the download URL and start it
         download.downloadTask = downloadsSession.downloadTask(with: url)
+        debugPrint("Download Task 2: \(download.downloadTask)")
         download.downloadTask!.resume()
         download.isDownloading = true
       }
@@ -190,9 +195,12 @@ class SearchViewController: UIViewController {
   }
 }
 
+// MARK: Fix download problem
+
+
 // MARK: - UISearchBarDelegate
 
-extension SearchViewController: UISearchBarDelegate {
+/*extension SearchViewController: UISearchBarDelegate {
   func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
     // Dimiss the keyboard
     dismissKeyboard()
@@ -243,7 +251,7 @@ extension SearchViewController: UISearchBarDelegate {
   func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
     view.removeGestureRecognizer(tapRecognizer)
   }
-}
+}*/
 
 // MARK: TrackCellDelegate
 
@@ -253,6 +261,7 @@ extension SearchViewController: TrackCellDelegate {
       let track = searchResults[indexPath.row]
       pauseDownload(track)
       tableView.reloadRows(at: [IndexPath(row: indexPath.row, section: 0)], with: .none)
+        debugPrint("PAUSE TAPPED \(indexPath.row)")
     }
   }
   
@@ -261,6 +270,7 @@ extension SearchViewController: TrackCellDelegate {
       let track = searchResults[indexPath.row]
       resumeDownload(track)
       tableView.reloadRows(at: [IndexPath(row: indexPath.row, section: 0)], with: .none)
+      debugPrint("RESUME TAPPED \(indexPath.row)")
     }
   }
   
@@ -269,6 +279,7 @@ extension SearchViewController: TrackCellDelegate {
       let track = searchResults[indexPath.row]
       cancelDownload(track)
       tableView.reloadRows(at: [IndexPath(row: indexPath.row, section: 0)], with: .none)
+      debugPrint("CANCEL TAPPED \(indexPath.row)")
     }
   }
   
@@ -277,6 +288,7 @@ extension SearchViewController: TrackCellDelegate {
       let track = searchResults[indexPath.row]
       startDownload(track)
       tableView.reloadRows(at: [IndexPath(row: indexPath.row, section: 0)], with: .none)
+      debugPrint("DOWNLOAD TAPPED \(indexPath.row)")
     }
   }
 }
@@ -398,6 +410,7 @@ extension SearchViewController: URLSessionDownloadDelegate {
         DispatchQueue.main.async {
           trackCell.progressView.progress = download.progress
           trackCell.progressLabel.text = String(format: "%.1f%% of %@", download.progress * 100, totalSize)
+//          debugPrint((download.progress * 100))
         }
       }
     }
@@ -417,5 +430,124 @@ extension SearchViewController: URLSessionDelegate {
       }
     }
   }
+}
+
+extension URLSession {
+  
+  func correct(requestData data: Data?) -> Data? {
+    guard let data = data else {
+      return nil
+    }
+    if NSKeyedUnarchiver.unarchiveObject(with: data) != nil {
+      return data
+    }
+    guard let archive = (try? PropertyListSerialization.propertyList(from: data, options: [.mutableContainersAndLeaves], format: nil)) as? NSMutableDictionary else {
+      return nil
+    }
+    // Rectify weird __nsurlrequest_proto_props objects to $number pattern
+    var k = 0
+    while ((archive["$objects"] as? NSArray)?[1] as? NSDictionary)?.object(forKey: "$\(k)") != nil {
+      k += 1
+    }
+    var i = 0
+    while ((archive["$objects"] as? NSArray)?[1] as? NSDictionary)?.object(forKey: "__nsurlrequest_proto_prop_obj_\(i)") != nil {
+      let arr = archive["$objects"] as? NSMutableArray
+      if let dic = arr?[1] as? NSMutableDictionary, let obj = dic["__nsurlrequest_proto_prop_obj_\(i)"] {
+        dic.setObject(obj, forKey: "$\(i + k)" as NSString)
+        dic.removeObject(forKey: "__nsurlrequest_proto_prop_obj_\(i)")
+        arr?[1] = dic
+        archive["$objects"] = arr
+      }
+      i += 1
+    }
+    if ((archive["$objects"] as? NSArray)?[1] as? NSDictionary)?.object(forKey: "__nsurlrequest_proto_props") != nil {
+      let arr = archive["$objects"] as? NSMutableArray
+      if let dic = arr?[1] as? NSMutableDictionary, let obj = dic["__nsurlrequest_proto_props"] {
+        dic.setObject(obj, forKey: "$\(i + k)" as NSString)
+        dic.removeObject(forKey: "__nsurlrequest_proto_props")
+        arr?[1] = dic
+        archive["$objects"] = arr
+      }
+    }
+    /* I think we have no reason to keep this section in effect
+     for item in (archive["$objects"] as? NSMutableArray) ?? [] {
+     if let cls = item as? NSMutableDictionary, cls["$classname"] as? NSString == "NSURLRequest" {
+     cls["$classname"] = NSString(string: "NSMutableURLRequest")
+     (cls["$classes"] as? NSMutableArray)?.insert(NSString(string: "NSMutableURLRequest"), at: 0)
+     }
+     }*/
+    // Rectify weird "NSKeyedArchiveRootObjectKey" top key to NSKeyedArchiveRootObjectKey = "root"
+    if let obj = (archive["$top"] as? NSMutableDictionary)?.object(forKey: "NSKeyedArchiveRootObjectKey") as AnyObject? {
+      (archive["$top"] as? NSMutableDictionary)?.setObject(obj, forKey: NSKeyedArchiveRootObjectKey as NSString)
+      (archive["$top"] as? NSMutableDictionary)?.removeObject(forKey: "NSKeyedArchiveRootObjectKey")
+    }
+    // Reencode archived object
+    let result = try? PropertyListSerialization.data(fromPropertyList: archive, format: PropertyListSerialization.PropertyListFormat.binary, options: PropertyListSerialization.WriteOptions())
+    return result
+  }
+  
+  func getResumeDictionary(_ data: Data) -> NSMutableDictionary? {
+    // In beta versions, resumeData is NSKeyedArchive encoded instead of plist
+    var iresumeDictionary: NSMutableDictionary? = nil
+    if #available(iOS 10.0, OSX 10.12, *) {
+      var root : AnyObject? = nil
+      let keyedUnarchiver = NSKeyedUnarchiver(forReadingWith: data)
+      
+      do {
+        root = try keyedUnarchiver.decodeTopLevelObject(forKey: "NSKeyedArchiveRootObjectKey") ?? nil
+        if root == nil {
+          root = try keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
+        }
+      } catch {}
+      keyedUnarchiver.finishDecoding()
+      iresumeDictionary = root as? NSMutableDictionary
+      
+    }
+    
+    if iresumeDictionary == nil {
+      do {
+        iresumeDictionary = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.ReadOptions(), format: nil) as? NSMutableDictionary;
+      } catch {}
+    }
+    
+    return iresumeDictionary
+  }
+  
+  func correctResumeData(_ data: Data?) -> Data? {
+    let kResumeCurrentRequest = "NSURLSessionResumeCurrentRequest"
+    let kResumeOriginalRequest = "NSURLSessionResumeOriginalRequest"
+    
+    guard let data = data, let resumeDictionary = getResumeDictionary(data) else {
+      return nil
+    }
+    
+    resumeDictionary[kResumeCurrentRequest] = correct(requestData: resumeDictionary[kResumeCurrentRequest] as? Data)
+    resumeDictionary[kResumeOriginalRequest] = correct(requestData: resumeDictionary[kResumeOriginalRequest] as? Data)
+    
+    let result = try? PropertyListSerialization.data(fromPropertyList: resumeDictionary, format: PropertyListSerialization.PropertyListFormat.xml, options: PropertyListSerialization.WriteOptions())
+    return result
+  }
+
+    func correctedDownloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask {
+        let kResumeCurrentRequest = "NSURLSessionResumeCurrentRequest"
+        let kResumeOriginalRequest = "NSURLSessionResumeOriginalRequest"
+        
+        let cData = correctResumeData(resumeData) ?? resumeData
+        let task = self.downloadTask(withResumeData: cData)
+        
+        // a compensation for inability to set task requests in CFNetwork.
+        // While you still get -[NSKeyedUnarchiver initForReadingWithData:]: data is NULL error,
+        // this section will set them to real objects
+        if let resumeDic = getResumeDictionary(cData) {
+            if task.originalRequest == nil, let originalReqData = resumeDic[kResumeOriginalRequest] as? Data, let originalRequest = NSKeyedUnarchiver.unarchiveObject(with: originalReqData) as? NSURLRequest {
+                task.setValue(originalRequest, forKey: "originalRequest")
+            }
+            if task.currentRequest == nil, let currentReqData = resumeDic[kResumeCurrentRequest] as? Data, let currentRequest = NSKeyedUnarchiver.unarchiveObject(with: currentReqData) as? NSURLRequest {
+                task.setValue(currentRequest, forKey: "currentRequest")
+            }
+        }
+        
+        return task
+    }
 }
 
